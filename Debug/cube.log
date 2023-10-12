@@ -1,0 +1,3 @@
+﻿  cube.cpp
+C:\Users\CAU\Desktop\민석임시파일\cube_car\src\cube.cpp(275,22): warning C4101: 'pvmMat' :참조되지 않은 지역 변수입니다.
+  cube.vcxproj -> C:\Users\CAU\Desktop\민석임시파일\cube_car\Debug\cube.exe
