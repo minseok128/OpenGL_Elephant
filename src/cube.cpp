@@ -1,5 +1,5 @@
 //
-// Display a color cube
+// Display a elephant
 //
 // Colors are assigned to each vertex and then the rasterizer interpolates
 //   those colors across the triangles.  We us an orthographic projection
@@ -15,9 +15,9 @@ glm::mat4 viewMat;
 
 GLuint pvmMatrixID;
 
-float rotAngleWorldx = 0.f;
-float rotAngleWorldy = 0.f;
-float rotAngleWorldz = 0.f;
+float rotAngleWorldx = 4.123f;
+float rotAngleWorldy = 6.25f;
+float rotAngleWorldz = 4.375f;
 
 float rotAngleLeg = 0.0f;
 int isDrawingCar = false;
@@ -130,7 +130,7 @@ init()
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 }
 
-void drawLeg(glm::mat4 carMat, glm::vec3 legPos)
+void drawLeg(glm::mat4 worldMat, glm::vec3 legPos)
 {
 	glm::mat4 modelMat, pvmMat;
 	glm::vec3 wheelPos[4];
@@ -146,10 +146,10 @@ void drawLeg(glm::mat4 carMat, glm::vec3 legPos)
 	wheelDir[2] = -1;
 	wheelDir[3] = 1;
 
-	// ´Ù¸® »ó´Ü
+	// í—ˆë²…ì§€
 	for (int i = 0; i < 4; i++)
 	{
-		modelMat = glm::translate(carMat, wheelPos[i]);  //P*V*C*T*S*v
+		modelMat = glm::translate(worldMat, wheelPos[i]);
 		modelMat = glm::rotate(modelMat, -rotAngleLeg * 75.0f * wheelDir[i], glm::vec3(0, 1, 0));
 		modelMat = glm::scale(modelMat, glm::vec3(0.5, 0.5, 0.5));
 		pvmMat = projectMat * viewMat * modelMat;
@@ -157,20 +157,20 @@ void drawLeg(glm::mat4 carMat, glm::vec3 legPos)
 		glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 	}
 
-	// ´Ù¸® Áß°£ °üÀý
+	// ë¬´ë¦Ž
 	for (int i = 0; i < 4; i++)
 	{
-		modelMat = glm::translate(carMat, wheelPos[i] + glm::vec3(0.25f * sin(rotAngleLeg * 75.0f * wheelDir[i]), 0.0, -0.25));  //P*V*C*T*S*v
+		modelMat = glm::translate(worldMat, wheelPos[i] + glm::vec3(0.25f * sin(rotAngleLeg * 75.0f * wheelDir[i]), 0.0, -0.25));  //P*V*C*T*S*v
 		modelMat = glm::scale(modelMat, glm::vec3(0.375, 0.375, 0.125));
 		pvmMat = projectMat * viewMat * modelMat;
 		glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
 		glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 	}
 
-	// ´Ù¸® ÇÏ´Ü
+	// ì¢…ì•„ë¦¬
 	for (int i = 0; i < 4; i++)
 	{
-		modelMat = glm::translate(carMat, wheelPos[i] + glm::vec3(0.0, 0.0, -0.5));  //P*V*C*T*S*v
+		modelMat = glm::translate(worldMat, wheelPos[i] + glm::vec3(0.0, 0.0, -0.5));
 		modelMat = glm::rotate(modelMat, rotAngleLeg * 75.0f * wheelDir[i], glm::vec3(0, 1, 0));
 		modelMat = glm::scale(modelMat, glm::vec3(0.35, 0.35, 0.5));
 		pvmMat = projectMat * viewMat * modelMat;
@@ -178,10 +178,10 @@ void drawLeg(glm::mat4 carMat, glm::vec3 legPos)
 		glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 	}
 
-	// ´Ù¸® ¹ß
+	// ë°œ
 	for (int i = 0; i < 4; i++)
 	{
-		modelMat = glm::translate(carMat, wheelPos[i] + glm::vec3(0.05f + 0.25f * sin(rotAngleLeg * 75.0f * wheelDir[i] * -1), 0.0, -0.75f));  //P*V*C*T*S*v
+		modelMat = glm::translate(worldMat, wheelPos[i] + glm::vec3(0.05f + 0.25f * sin(rotAngleLeg * 75.0f * wheelDir[i] * -1), 0.0, -0.75f));  //P*V*C*T*S*v
 		modelMat = glm::scale(modelMat, glm::vec3(0.5, 0.36, 0.175));
 		pvmMat = projectMat * viewMat * modelMat;
 		glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
@@ -189,86 +189,97 @@ void drawLeg(glm::mat4 carMat, glm::vec3 legPos)
 	}
 }
 
-//----------------------------------------------------------------------------
-
-void drawHead(glm::mat4 carMat, glm::vec3 headPos)
+void drawHead(glm::mat4 worldMat, glm::vec3 headPos)
 {
-	glm::mat4 modelMat, pvmMat;
+	glm::mat4 modelMat, pvmMat, headPosMat;
 
-	// ¸Ó¸®
-	modelMat = glm::translate(carMat, glm::vec3(0.75, 0, 0.45) + headPos);  //P*V*C*T*S*v
+	headPosMat = glm::translate(glm::mat4(1.0f), headPos);
+
+	// ë¨¸ë¦¬
+	modelMat = glm::translate(worldMat, glm::vec3(0.75, 0, 0.45));
 	modelMat = glm::rotate(modelMat, -.25f, glm::vec3(0, 1, 0));
 	modelMat = glm::scale(modelMat, glm::vec3(0.65, 0.6, 0.65));
-	pvmMat = projectMat * viewMat * modelMat;
+	pvmMat = projectMat * viewMat * modelMat * headPosMat;
 	glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 
+	// ê·€
 	for (int i = 0; i < 2; i++)
 	{
 		int sign = i == 0 ? 1 : -1;
-		modelMat = glm::translate(carMat, glm::vec3(0.7, 0.5 * sign, 0.45) + headPos);  //P*V*C*T*S*v
+		modelMat = glm::translate(worldMat, glm::vec3(0.7, 0.5 * sign, 0.45));
 		modelMat = glm::rotate(modelMat, -.25f, glm::vec3(1 * sign, 1, -1 * sign));
 		modelMat = glm::scale(modelMat, glm::vec3(0.125, 0.65, 0.65));
-		pvmMat = projectMat * viewMat * modelMat;
+		pvmMat = projectMat * viewMat * modelMat * headPosMat;
 		glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
 		glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 	}
 
+	// ìƒì•„
 	for (int i = 0; i < 2; i++)
 	{
 		int sign = i == 0 ? 1 : -1;
-		modelMat = glm::translate(carMat, glm::vec3(1.0, 0.275 * sign, 0.0) + headPos);  //P*V*C*T*S*v
+		modelMat = glm::translate(worldMat, glm::vec3(1.0, 0.275 * sign, 0.0));
 		modelMat = glm::rotate(modelMat, -.35f, glm::vec3(-1 * sign, 1, -1 * sign));
 		modelMat = glm::scale(modelMat, glm::vec3(0.1, 0.1, 0.65));
-		pvmMat = projectMat * viewMat * modelMat;
+		pvmMat = projectMat * viewMat * modelMat * headPosMat;
 		glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
 		glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 	}
 
-	modelMat = glm::translate(carMat, glm::vec3(0.9, 0, 0.0) + headPos);  //P*V*C*T*S*v
+	// ì½”1
+	modelMat = glm::translate(worldMat, glm::vec3(0.9, 0, 0.0));
 	modelMat = glm::rotate(modelMat, -.25f, glm::vec3(0, 1, 0));
 	modelMat = glm::scale(modelMat, glm::vec3(0.45, 0.45, 0.65));
-	pvmMat = projectMat * viewMat * modelMat;
+	pvmMat = projectMat * viewMat * modelMat * headPosMat;
 	glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 
-	modelMat = glm::translate(carMat, glm::vec3(0.95, 0, -0.5) + headPos);  //P*V*C*T*S*v
+	// ì½”2
+	modelMat = glm::translate(worldMat, glm::vec3(0.95, 0, -0.5));
 	modelMat = glm::rotate(modelMat, .1f, glm::vec3(0, 1, 0));
 	modelMat = glm::scale(modelMat, glm::vec3(0.35, 0.35, 0.45));
-	pvmMat = projectMat * viewMat * modelMat;
+	pvmMat = projectMat * viewMat * modelMat * headPosMat;
 	glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 
-	modelMat = glm::translate(carMat, glm::vec3(0.9, 0, -0.8) + headPos);  //P*V*C*T*S*v
+	// ì½”3
+	modelMat = glm::translate(worldMat, glm::vec3(0.9, 0, -0.8));
 	modelMat = glm::rotate(modelMat, .15f, glm::vec3(0, 1, 0));
 	modelMat = glm::scale(modelMat, glm::vec3(0.225, 0.225, 0.4));
-	pvmMat = projectMat * viewMat * modelMat;
+	pvmMat = projectMat * viewMat * modelMat * headPosMat;
 	glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 }
 
-void drawCar(glm::mat4 carMat)
+void drawBody(glm::mat4 worldMat, glm::vec3 bodyPos)
 {
-	glm::mat4 modelMat, pvmMat;
+	glm::mat4 modelMat, pvmMat, bodyPosMat;
 
-	// ¸öÅë
-	modelMat = glm::scale(carMat, glm::vec3(1.4, 1, 0.9));
-	pvmMat = projectMat * viewMat * modelMat;
+	bodyPosMat = glm::translate(glm::mat4(1.0f), bodyPos);
+
+	// ëª¸í†µ
+	modelMat = glm::translate(worldMat, glm::vec3(-0.8, 0, 0));
+	modelMat = glm::scale(worldMat, glm::vec3(1.4, 1, 0.9));
+	pvmMat = projectMat * viewMat * modelMat * bodyPosMat;
 	glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 
-	drawHead(carMat, glm::vec3(0.25, 0, -0.2));
-	drawLeg(carMat, glm::vec3(0, 0, -0.35f));
-
-	// ²¿¸®
-	modelMat = glm::translate(carMat, glm::vec3(-0.8, 0, 0));  //P*V*C*T*S*v
+	// ê¼¬ë¦¬
+	modelMat = glm::translate(worldMat, glm::vec3(-0.8, 0, 0));
 	modelMat = glm::rotate(modelMat, .35f, glm::vec3(0, 1, 0));
 	modelMat = glm::scale(modelMat, glm::vec3(0.1, 0.1, 0.75));
-	pvmMat = projectMat * viewMat * modelMat;
+	pvmMat = projectMat * viewMat * modelMat * bodyPosMat;
 	glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 }
 
+void drawElephant(glm::mat4 worldMat)
+{
+	drawBody(worldMat, glm::vec3(0, 0, 0));
+	drawHead(worldMat, glm::vec3(0.25, 0, -0.2));
+	drawLeg(worldMat, glm::vec3(0, 0, -0.35));	
+}
 
 void display(void)
 {
@@ -276,12 +287,10 @@ void display(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	worldMat = glm::rotate(glm::mat4(1.0f), rotAngleWorldx, glm::vec3(1.0f, 0.0f, 0.0f));
-	worldMat = glm::rotate(worldMat, rotAngleWorldy, glm::vec3(0.0f, 1.0f, 0.0f));
-	worldMat = glm::rotate(worldMat, rotAngleWorldz, glm::vec3(0.0f, 0.0f, 1.0f));
+	worldMat *= glm::rotate(glm::mat4(1.0f), rotAngleWorldy, glm::vec3(0.0f, 1.0f, 0.0f));
+	worldMat *= glm::rotate(glm::mat4(1.0f), rotAngleWorldz, glm::vec3(0.0f, 0.0f, 1.0f));
 	
-	//worldMat = glm::rotate(glm::mat4(1.0f), rotAngleWorldx, glm::vec3(rotAngleWorldx, rotAngleWorldy, rotAngleWorldz));
-
-	drawCar(worldMat);
+	drawElephant(worldMat);
 
 	glutSwapBuffers();
 }
@@ -304,8 +313,7 @@ void idle()
 
 //----------------------------------------------------------------------------
 
-void
-keyboard(unsigned char key, int x, int y)
+void keyboard(unsigned char key, int x, int y)
 {
 	switch (key) {
 	case '1':
@@ -344,10 +352,10 @@ main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
-	glutInitWindowSize(512, 512);
+	glutInitWindowSize(700, 700);
 	glutInitContextVersion(3, 2);
 	glutInitContextProfile(GLUT_CORE_PROFILE);
-	glutCreateWindow("Color Car");
+	glutCreateWindow("Color Elephant");
 
 	glewInit();
 
