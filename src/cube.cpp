@@ -22,8 +22,8 @@ float rotAngleWorldz = 4.375f;
 float rotAngleLeg = 0.0f;
 int isDrawingCar = false;
 
-typedef glm::vec4  color4;
-typedef glm::vec4  point4;
+typedef glm::vec4 color4;
+typedef glm::vec4 point4;
 
 const int NumVertices = 36; //(6 faces)(2 triangles/face)(3 vertices/triangle)
 
@@ -39,19 +39,18 @@ point4 vertices[8] = {
 	point4(-0.5, -0.5, -0.5, 1.0),
 	point4(-0.5, 0.5, -0.5, 1.0),
 	point4(0.5, 0.5, -0.5, 1.0),
-	point4(0.5, -0.5, -0.5, 1.0)
-};
+	point4(0.5, -0.5, -0.5, 1.0)};
 
 // RGBA colors
 color4 vertex_colors[8] = {
-	color4(0.0, 0.0, 0.0, 1.0),  // black
-	color4(0.0, 1.0, 1.0, 1.0),   // cyan
-	color4(1.0, 0.0, 1.0, 1.0),  // magenta
-	color4(1.0, 1.0, 0.0, 1.0),  // yellow
-	color4(1.0, 0.0, 0.0, 1.0),  // red
-	color4(0.0, 1.0, 0.0, 1.0),  // green
-	color4(0.0, 0.0, 1.0, 1.0),  // blue
-	color4(1.0, 1.0, 1.0, 1.0)  // white
+	color4(0.0, 0.0, 0.0, 1.0), // black
+	color4(0.0, 1.0, 1.0, 1.0), // cyan
+	color4(1.0, 0.0, 1.0, 1.0), // magenta
+	color4(1.0, 1.0, 0.0, 1.0), // yellow
+	color4(1.0, 0.0, 0.0, 1.0), // red
+	color4(0.0, 1.0, 0.0, 1.0), // green
+	color4(0.0, 0.0, 1.0, 1.0), // blue
+	color4(1.0, 1.0, 1.0, 1.0)	// white
 };
 
 //----------------------------------------------------------------------------
@@ -59,22 +58,32 @@ color4 vertex_colors[8] = {
 // quad generates two triangles for each face and assigns colors
 //    to the vertices
 int Index = 0;
-void
-quad(int a, int b, int c, int d)
+void quad(int a, int b, int c, int d)
 {
-	colors[Index] = vertex_colors[a]; points[Index] = vertices[a];  Index++;
-	colors[Index] = vertex_colors[b]; points[Index] = vertices[b];  Index++;
-	colors[Index] = vertex_colors[c]; points[Index] = vertices[c];  Index++;
-	colors[Index] = vertex_colors[a]; points[Index] = vertices[a];  Index++;
-	colors[Index] = vertex_colors[c]; points[Index] = vertices[c];  Index++;
-	colors[Index] = vertex_colors[d]; points[Index] = vertices[d];  Index++;
+	colors[Index] = vertex_colors[a];
+	points[Index] = vertices[a];
+	Index++;
+	colors[Index] = vertex_colors[b];
+	points[Index] = vertices[b];
+	Index++;
+	colors[Index] = vertex_colors[c];
+	points[Index] = vertices[c];
+	Index++;
+	colors[Index] = vertex_colors[a];
+	points[Index] = vertices[a];
+	Index++;
+	colors[Index] = vertex_colors[c];
+	points[Index] = vertices[c];
+	Index++;
+	colors[Index] = vertex_colors[d];
+	points[Index] = vertices[d];
+	Index++;
 }
 
 //----------------------------------------------------------------------------
 
 // generate 12 triangles: 36 vertices and 36 colors
-void
-colorcube()
+void colorcube()
 {
 	quad(1, 0, 3, 2);
 	quad(2, 3, 7, 6);
@@ -87,8 +96,7 @@ colorcube()
 //----------------------------------------------------------------------------
 
 // OpenGL initialization
-void
-init()
+void init()
 {
 	colorcube();
 
@@ -102,7 +110,7 @@ init()
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(points) + sizeof(colors),
-		NULL, GL_STATIC_DRAW);
+				 NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(points), points);
 	glBufferSubData(GL_ARRAY_BUFFER, sizeof(points), sizeof(colors), colors);
 
@@ -114,12 +122,12 @@ init()
 	GLuint vPosition = glGetAttribLocation(program, "vPosition");
 	glEnableVertexAttribArray(vPosition);
 	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0,
-		BUFFER_OFFSET(0));
+						  BUFFER_OFFSET(0));
 
 	GLuint vColor = glGetAttribLocation(program, "vColor");
 	glEnableVertexAttribArray(vColor);
 	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0,
-		BUFFER_OFFSET(sizeof(points)));
+						  BUFFER_OFFSET(sizeof(points)));
 
 	pvmMatrixID = glGetUniformLocation(program, "mPVM");
 
@@ -130,76 +138,77 @@ init()
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 }
 
-void drawLeg(glm::mat4 worldMat, glm::vec3 legPos)
+void drawLeg(glm::mat4 worldRotMat, glm::mat4 bodyMat)
 {
-	glm::mat4 modelMat, pvmMat;
-	glm::vec3 wheelPos[4];
-	int wheelDir[4];
-	const float xPos = 0.55f, yPos = 0.4f;
+	glm::mat4 modelMat, pvmMat, scaleMat, identityMat = glm::mat4(1.0f);
+	glm::mat4 legMat;
+	glm::vec3 eachLegPos[4];
 
-	wheelPos[0] = glm::vec3(xPos, yPos, -0.2) + legPos; // rear right
-	wheelPos[1] = glm::vec3(xPos, -yPos, -0.2) + legPos; // rear left
-	wheelPos[2] = glm::vec3(-xPos, yPos, -0.2) + legPos; // front right
-	wheelPos[3] = glm::vec3(-xPos, -yPos, -0.2) + legPos; // front left
-	wheelDir[0] = 1;
-	wheelDir[1] = -1;
-	wheelDir[2] = -1;
-	wheelDir[3] = 1;
+	int eachLeglDir[4];
+	const float xPos = 0.6f, yPos = 0.4f, zPos = 0.4f;
+
+	eachLegPos[0] = glm::vec3(xPos, yPos, -zPos);	// rear right
+	eachLegPos[1] = glm::vec3(xPos, -yPos, -zPos);	// rear left
+	eachLegPos[2] = glm::vec3(-xPos, yPos, -zPos);	// front right
+	eachLegPos[3] = glm::vec3(-xPos, -yPos, -zPos); // front left
+	eachLeglDir[0] = 1;
+	eachLeglDir[1] = -1;
+	eachLeglDir[2] = -1;
+	eachLeglDir[3] = 1;
 
 	// 허벅지
 	for (int i = 0; i < 4; i++)
 	{
-		modelMat = glm::translate(worldMat, wheelPos[i]);
-		modelMat = glm::rotate(modelMat, -rotAngleLeg * 75.0f * wheelDir[i], glm::vec3(0, 1, 0));
-		modelMat = glm::scale(modelMat, glm::vec3(0.5, 0.5, 0.5));
-		pvmMat = projectMat * viewMat * modelMat;
+		// 허벅지
+		legMat = glm::translate(identityMat, eachLegPos[i]);
+		legMat = glm::translate(legMat, glm::vec3(0.0f, 0.0f, 0.5f)); // 상단 끝 부분을 회전 축으로 이동
+		legMat = glm::rotate(legMat, -rotAngleLeg * 60.0f * eachLeglDir[i], glm::vec3(0, 1, 0));
+		legMat = glm::translate(legMat, glm::vec3(0.0f, 0.0f, -0.5f)); // 다시 원래 위치로 되돌리기
+		scaleMat = glm::scale(identityMat, glm::vec3(0.5, 0.5, 0.5));
+		pvmMat = projectMat * viewMat * worldRotMat * bodyMat * legMat * scaleMat;
 		glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
 		glDrawArrays(GL_TRIANGLES, 0, NumVertices);
-	}
 
-	// 무릎
-	for (int i = 0; i < 4; i++)
-	{
-		modelMat = glm::translate(worldMat, wheelPos[i] + glm::vec3(0.25f * sin(rotAngleLeg * 75.0f * wheelDir[i]), 0.0, -0.25));  //P*V*C*T*S*v
-		modelMat = glm::scale(modelMat, glm::vec3(0.375, 0.375, 0.125));
-		pvmMat = projectMat * viewMat * modelMat;
+		// 무릎
+		modelMat = glm::translate(legMat, glm::vec3(0, 0, -0.25));
+		scaleMat = glm::scale(identityMat, glm::vec3(0.45, 0.375, 0.2));
+		pvmMat = projectMat * viewMat * worldRotMat * bodyMat * modelMat * scaleMat;
 		glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
 		glDrawArrays(GL_TRIANGLES, 0, NumVertices);
-	}
 
-	// 종아리
-	for (int i = 0; i < 4; i++)
-	{
-		modelMat = glm::translate(worldMat, wheelPos[i] + glm::vec3(0.0, 0.0, -0.5));
-		modelMat = glm::rotate(modelMat, rotAngleLeg * 75.0f * wheelDir[i], glm::vec3(0, 1, 0));
-		modelMat = glm::scale(modelMat, glm::vec3(0.35, 0.35, 0.5));
-		pvmMat = projectMat * viewMat * modelMat;
+		// 종아리
+		modelMat = glm::translate(modelMat, glm::vec3(0.0, 0.0, -0.31));
+		modelMat = glm::translate(modelMat, glm::vec3(0.0f, 0.0f, 0.5f)); // 상단 끝 부분을 회전 축으로 이동
+		modelMat = glm::rotate(modelMat, -rotAngleLeg * 50.0f * eachLeglDir[i], glm::vec3(0, 1, 0));
+		modelMat = glm::translate(modelMat, glm::vec3(0.0f, 0.0f, -0.5f)); // 다시 원래 위치로 되돌리기
+		scaleMat = glm::scale(identityMat, glm::vec3(0.35, 0.35, 0.5));
+		pvmMat = projectMat * viewMat * worldRotMat * bodyMat * modelMat * scaleMat;
 		glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
 		glDrawArrays(GL_TRIANGLES, 0, NumVertices);
-	}
 
-	// 발
-	for (int i = 0; i < 4; i++)
-	{
-		modelMat = glm::translate(worldMat, wheelPos[i] + glm::vec3(0.05f + 0.25f * sin(rotAngleLeg * 75.0f * wheelDir[i] * -1), 0.0, -0.75f));  //P*V*C*T*S*v
-		modelMat = glm::scale(modelMat, glm::vec3(0.5, 0.36, 0.175));
-		pvmMat = projectMat * viewMat * modelMat;
+		// 발
+		modelMat = glm::translate(modelMat, glm::vec3(0.025, 0.0, -0.25));
+		modelMat = glm::rotate(modelMat, -rotAngleLeg * 75.0f * eachLeglDir[i], glm::vec3(0, 1, 0));
+		scaleMat = glm::scale(identityMat, glm::vec3(0.5, 0.36, 0.175));
+		pvmMat = projectMat * viewMat * worldRotMat * bodyMat * modelMat * scaleMat;
 		glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
 		glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 	}
 }
 
-void drawHead(glm::mat4 worldMat, glm::vec3 headPos)
+void drawHead(glm::mat4 worldRotMat, glm::mat4 bodyMat)
 {
-	glm::mat4 modelMat, pvmMat, headPosMat;
+	glm::mat4 modelMat, pvmMat, scaleMat, identityMat = glm::mat4(1.0f);
+	glm::mat4 headMat, noseMat;
 
-	headPosMat = glm::translate(glm::mat4(1.0f), headPos);
+	headMat = glm::translate(glm::mat4(1.0f), glm::vec3(0.25f, .0f, -0.2f));
+	headMat = glm::rotate(headMat, rotAngleLeg * 35.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 
 	// 머리
-	modelMat = glm::translate(worldMat, glm::vec3(0.75, 0, 0.45));
-	modelMat = glm::rotate(modelMat, -.25f, glm::vec3(0, 1, 0));
-	modelMat = glm::scale(modelMat, glm::vec3(0.65, 0.6, 0.65));
-	pvmMat = projectMat * viewMat * modelMat * headPosMat;
+	modelMat = glm::translate(identityMat, glm::vec3(0.75, 0, 0.45));
+	modelMat = glm::rotate(modelMat, -0.25f, glm::vec3(0, 1, 0));
+	scaleMat = glm::scale(identityMat, glm::vec3(0.65, 0.6, 0.65));
+	pvmMat = projectMat * viewMat * worldRotMat * bodyMat * headMat * modelMat * scaleMat;
 	glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 
@@ -207,10 +216,10 @@ void drawHead(glm::mat4 worldMat, glm::vec3 headPos)
 	for (int i = 0; i < 2; i++)
 	{
 		int sign = i == 0 ? 1 : -1;
-		modelMat = glm::translate(worldMat, glm::vec3(0.7, 0.5 * sign, 0.45));
-		modelMat = glm::rotate(modelMat, -.25f, glm::vec3(1 * sign, 1, -1 * sign));
-		modelMat = glm::scale(modelMat, glm::vec3(0.125, 0.65, 0.65));
-		pvmMat = projectMat * viewMat * modelMat * headPosMat;
+		modelMat = glm::translate(identityMat, glm::vec3(0.7, 0.5 * sign, 0.45));
+		modelMat = glm::rotate(modelMat, -0.25f, glm::vec3(1 * sign, 1, -1 * sign));
+		scaleMat = glm::scale(identityMat, glm::vec3(0.125, 0.65, 0.65));
+		pvmMat = projectMat * viewMat * worldRotMat * bodyMat * headMat * modelMat * scaleMat;
 		glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
 		glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 	}
@@ -219,84 +228,86 @@ void drawHead(glm::mat4 worldMat, glm::vec3 headPos)
 	for (int i = 0; i < 2; i++)
 	{
 		int sign = i == 0 ? 1 : -1;
-		modelMat = glm::translate(worldMat, glm::vec3(1.0, 0.275 * sign, 0.0));
+		modelMat = glm::translate(identityMat, glm::vec3(0.8, 0.275 * sign, 0.0));
 		modelMat = glm::rotate(modelMat, -.35f, glm::vec3(-1 * sign, 1, -1 * sign));
-		modelMat = glm::scale(modelMat, glm::vec3(0.1, 0.1, 0.65));
-		pvmMat = projectMat * viewMat * modelMat * headPosMat;
+		scaleMat = glm::scale(identityMat, glm::vec3(0.1, 0.1, 0.65));
+		pvmMat = projectMat * viewMat * worldRotMat * bodyMat * headMat * modelMat * scaleMat;
 		glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
 		glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 	}
 
 	// 코1
-	modelMat = glm::translate(worldMat, glm::vec3(0.9, 0, 0.0));
-	modelMat = glm::rotate(modelMat, -.25f, glm::vec3(0, 1, 0));
-	modelMat = glm::scale(modelMat, glm::vec3(0.45, 0.45, 0.65));
-	pvmMat = projectMat * viewMat * modelMat * headPosMat;
+	noseMat = glm::translate(identityMat, glm::vec3(0.85, 0, 0.0));
+	// noseMat = glm::rotate(noseMat, 0, glm::vec3(0, 1, 0));
+	noseMat = glm::rotate(noseMat, -rotAngleLeg * 35.0f, glm::vec3(0, 0, 1));
+	scaleMat = glm::scale(identityMat, glm::vec3(0.45, 0.45, 0.65));
+	pvmMat = projectMat * viewMat * worldRotMat * bodyMat * headMat * noseMat * scaleMat;
 	glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 
 	// 코2
-	modelMat = glm::translate(worldMat, glm::vec3(0.95, 0, -0.5));
-	modelMat = glm::rotate(modelMat, .1f, glm::vec3(0, 1, 0));
-	modelMat = glm::scale(modelMat, glm::vec3(0.35, 0.35, 0.45));
-	pvmMat = projectMat * viewMat * modelMat * headPosMat;
+	noseMat = glm::translate(noseMat, glm::vec3(0, 0, -0.5));
+	noseMat = glm::rotate(noseMat, 0.1f, glm::vec3(0, 1, 0));
+	noseMat = glm::rotate(noseMat, -rotAngleLeg * 35.0f, glm::vec3(0, 0, 1));
+	scaleMat = glm::scale(identityMat, glm::vec3(0.35, 0.35, 0.45));
+	pvmMat = projectMat * viewMat * worldRotMat * bodyMat * headMat * noseMat * scaleMat;
 	glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 
 	// 코3
-	modelMat = glm::translate(worldMat, glm::vec3(0.9, 0, -0.8));
-	modelMat = glm::rotate(modelMat, .15f, glm::vec3(0, 1, 0));
-	modelMat = glm::scale(modelMat, glm::vec3(0.225, 0.225, 0.4));
-	pvmMat = projectMat * viewMat * modelMat * headPosMat;
+	noseMat = glm::translate(noseMat, glm::vec3(0, 0, -0.3));
+	noseMat = glm::rotate(noseMat, 0.15f, glm::vec3(0, 1, 0));
+	noseMat = glm::rotate(noseMat, -rotAngleLeg * 35.0f, glm::vec3(0, 0, 1));
+	scaleMat = glm::scale(identityMat, glm::vec3(0.225, 0.225, 0.4));
+	pvmMat = projectMat * viewMat * worldRotMat * bodyMat * headMat * noseMat * scaleMat;
 	glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 }
 
-void drawBody(glm::mat4 worldMat, glm::vec3 bodyPos)
+void drawBody(glm::mat4 worldRotMat, glm::mat4 bodyMat)
 {
-	glm::mat4 modelMat, pvmMat, bodyPosMat;
-
-	bodyPosMat = glm::translate(glm::mat4(1.0f), bodyPos);
+	glm::mat4 modelMat, pvmMat, scaleMat, identityMat = glm::mat4(1.0f);
 
 	// 몸통
-	modelMat = glm::translate(worldMat, glm::vec3(-0.8, 0, 0));
-	modelMat = glm::scale(worldMat, glm::vec3(1.4, 1, 0.9));
-	pvmMat = projectMat * viewMat * modelMat * bodyPosMat;
+	scaleMat = glm::scale(identityMat, glm::vec3(1.4, 1, 0.9));
+	pvmMat = projectMat * viewMat * worldRotMat * bodyMat * scaleMat;
 	glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 
 	// 꼬리
-	modelMat = glm::translate(worldMat, glm::vec3(-0.8, 0, 0));
-	modelMat = glm::rotate(modelMat, .35f, glm::vec3(0, 1, 0));
-	modelMat = glm::scale(modelMat, glm::vec3(0.1, 0.1, 0.75));
-	pvmMat = projectMat * viewMat * modelMat * bodyPosMat;
+	modelMat = glm::translate(identityMat, glm::vec3(-0.8, 0, 0));
+	modelMat = glm::rotate(modelMat, 0.35f, glm::vec3(0, 1, 0));
+	scaleMat = glm::scale(identityMat, glm::vec3(0.1, 0.1, 0.75));
+	pvmMat = projectMat * viewMat * worldRotMat * bodyMat * modelMat * scaleMat;
 	glUniformMatrix4fv(pvmMatrixID, 1, GL_FALSE, &pvmMat[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 }
 
-void drawElephant(glm::mat4 worldMat)
+void drawElephant(glm::mat4 worldRotMat)
 {
-	drawBody(worldMat, glm::vec3(.0f, .0f, .0f));
-	drawHead(worldMat, glm::vec3(0.25f, .0f, -0.2f));
-	drawLeg(worldMat, glm::vec3(.0f, .0f, -0.35f));	
+	glm::mat4 bodyMat = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
+	bodyMat = glm::rotate(bodyMat, -rotAngleLeg * 10.0f, glm::vec3(1, 0, 0));
+
+	drawBody(worldRotMat, bodyMat); // 몸통 그리기
+	drawHead(worldRotMat, bodyMat); // 머리 그리기
+	drawLeg(worldRotMat, bodyMat);	// 다리 그리기
 }
 
 void display(void)
 {
-	glm::mat4 worldMat, pvmMat;
+	glm::mat4 worldRotMat, pvmMat;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	worldMat = glm::rotate(glm::mat4(1.0f), rotAngleWorldx, glm::vec3(1.0f, 0.0f, 0.0f));
-	worldMat *= glm::rotate(glm::mat4(1.0f), rotAngleWorldy, glm::vec3(0.0f, 1.0f, 0.0f));
-	worldMat *= glm::rotate(glm::mat4(1.0f), rotAngleWorldz, glm::vec3(0.0f, 0.0f, 1.0f));
-	
-	drawElephant(worldMat);
+	worldRotMat = glm::rotate(glm::mat4(1.0f), rotAngleWorldx, glm::vec3(1.0f, 0.0f, 0.0f));
+	worldRotMat *= glm::rotate(glm::mat4(1.0f), rotAngleWorldy, glm::vec3(0.0f, 1.0f, 0.0f));
+	worldRotMat *= glm::rotate(glm::mat4(1.0f), rotAngleWorldz, glm::vec3(0.0f, 0.0f, 1.0f));
+
+	drawElephant(worldRotMat);
 
 	glutSwapBuffers();
 }
 
 //----------------------------------------------------------------------------
-
 void idle()
 {
 	static int prevTime = glutGet(GLUT_ELAPSED_TIME);
@@ -305,17 +316,17 @@ void idle()
 	if (abs(currTime - prevTime) >= 20)
 	{
 		rotAngleLeg = glm::radians(cos(currTime / 100.0f) * 360.0f / 2000.0f);
-		
+
 		prevTime = currTime;
 		glutPostRedisplay();
 	}
 }
 
 //----------------------------------------------------------------------------
-
 void keyboard(unsigned char key, int x, int y)
 {
-	switch (key) {
+	switch (key)
+	{
 	case '1':
 		rotAngleWorldx += 0.125f;
 		break;
@@ -325,12 +336,12 @@ void keyboard(unsigned char key, int x, int y)
 	case '3':
 		rotAngleWorldz += 0.125f;
 		break;
-	case 033:  // Escape key
-	case 'q': case 'Q':
+	case 033: // Escape key
+	case 'q':
+	case 'Q':
 		exit(EXIT_SUCCESS);
 		break;
 	}
-	std::cout << "x:" << rotAngleWorldx << " y:" << rotAngleWorldy << " z:" << rotAngleWorldz << '\n';
 }
 
 //----------------------------------------------------------------------------
@@ -347,8 +358,7 @@ void resize(int w, int h)
 
 //----------------------------------------------------------------------------
 
-int
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
