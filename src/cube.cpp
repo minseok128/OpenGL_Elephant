@@ -276,9 +276,9 @@ void drawBody(glm::mat4 worldMat, glm::vec3 bodyPos)
 
 void drawElephant(glm::mat4 worldMat)
 {
-	drawBody(worldMat, glm::vec3(0, 0, 0));
-	drawHead(worldMat, glm::vec3(0.25, 0, -0.2));
-	drawLeg(worldMat, glm::vec3(0, 0, -0.35));	
+	drawBody(worldMat, glm::vec3(.0f, .0f, .0f));
+	drawHead(worldMat, glm::vec3(0.25f, .0f, -0.2f));
+	drawLeg(worldMat, glm::vec3(.0f, .0f, -0.35f));	
 }
 
 void display(void)
